@@ -180,6 +180,12 @@ The backend API is already hosted at:
 https://blog-website-production-7c9c.up.railway.app/api
 ```
 
+### Live Backend
+The frontend is already hosted at:
+```
+https://graceful-swan-6fba70.netlify.app/
+```
+
 ### Installation
 
 1. Clone the repository
