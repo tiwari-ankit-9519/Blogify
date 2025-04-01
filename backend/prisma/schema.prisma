@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Provider {
+  CREDENTIALS
+  GOOGLE
+  GITHUB
+  FACEBOOK
+}
+
+model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  password   String?
+  image      String?
+  provider   Provider?
+  providerId String?
+  role       Role      @default(USER)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  bio        String    @default("New User")
+  blogs      Blog[]
+  comments   Comment[]
+  likes      Like[]
+
+  @@index([email])
+  @@index([provider, providerId])
+}
+
+model Blog {
+  id         String         @id @default(uuid())
+  title      String
+  slug       String         @unique
+  content    String
+  coverImage String
+  images     String[]
+  published  Boolean        @default(false)
+  authorId   String
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  likes      Like[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deletedAt  DateTime?
+  categories BlogCategory[]
+
+  @@index([title])
+  @@index([slug])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model Category {
+  id    String         @id @default(uuid())
+  name  String         @unique
+  blogs BlogCategory[]
+
+  @@index([name])
+}
+
+model BlogCategory {
+  blogId     String
+  categoryId String
+  blog       Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([blogId, categoryId])
+  @@index([categoryId])
+  @@index([blogId])
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  content   String
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  blogId    String
+  blog      Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([authorId])
+  @@index([blogId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([blogId])
+  @@index([createdAt])
+}
